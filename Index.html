@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    /* 無印良品簡約風格 CSS + 社會思潮主題擴充 */
+    body {
+      font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+      background-color: #f7f5f0;
+      color: #4a4a4a;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      position: relative;
+    }
+    h2 {
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #333333;
+    }
+    
+    .input-group { display: flex; gap: 12px; margin-bottom: 15px; }
+    input {
+      flex: 1; box-sizing: border-box; padding: 12px 16px;
+      font-size: 16px; border: 1px solid #e0dbd5; border-radius: 4px;
+      background-color: #faf9f6; color: #4a4a4a; outline: none; transition: all 0.2s ease;
+    }
+    input:focus { border-color: #8c7b6c; background-color: #ffffff; }
+    
+    button {
+      padding: 12px 24px; font-size: 15px; border: none;
+      border-radius: 4px; cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+    }
+    .btn-primary { background-color: #7f6b5b; color: #ffffff; }
+    .btn-primary:hover { background-color: #665547; }
+    .btn-primary:disabled { background-color: #c4beb7; cursor: not-allowed; }
+    
+    .btn-secondary { background-color: #e0dbd5; color: #555555; }
+    .btn-secondary:hover:not(:disabled) { background-color: #d1caba; }
+    .btn-secondary:disabled { background-color: #f2efe9; color: #a39e96; cursor: not-allowed; }
+    .btn-exit {
+      display: block; margin: 40px auto 0 auto; background-color: transparent;
+      color: #7f6b5b; border: 1px solid #e0dbd5;
+    }
+    .btn-exit:hover { background-color: #7f6b5b; color: #ffffff; border-color: #7f6b5b; }
+
+    .message { text-align: center; font-size: 14px; margin-top: 10px; min-height: 20px; }
+    .text-loading { color: #8c7b6c; }
+    .text-success { color: #4b6b52; }
+    .text-error { color: #b91c1c; }
+
+    /* 表格設計 */
+    .info-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f2efe9; font-size: 15px; }
+    .info-header span { margin-right: 20px; color: #777777; display: inline-block; margin-bottom: 8px;}
+    .info-header strong { color: #333333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+    th { background-color: #f2efe9; font-weight: 500; text-align: left; padding: 12px; border-bottom: 2px solid #e0dbd5; }
+    td { padding: 12px; border-bottom: 1px solid #ece9e2; }
+    .danger { color: #b91c1c; font-weight: 500; }
+    .warning { color: #d97706; }
+
+    /* 助教儀表板專用 */
+    .dashboard-cards {
+      display: flex; gap: 15px; margin-bottom: 30px;
+    }
+    .card {
+      flex: 1; background-color: #faf9f6; border: 1px solid #e0dbd5;
+      padding: 15px; border-radius: 4px; text-align: center;
+    }
+    .card-title { font-size: 13px; color: #777; margin-bottom: 10px; letter-spacing: 1px;}
+    .card-list { list-style: none; padding: 0; margin: 0; font-size: 14px; text-align: left;}
+    .card-list li { padding: 6px 0; border-bottom: 1px dashed #e0dbd5; display: flex; justify-content: space-between;}
+    .card-list li:last-child { border-bottom: none; }
+    
+    /* 學生主題互動區塊 */
+    .theme-box {
+      background-color: #edf2f0; border-left: 4px solid #7c9e8a;
+      padding: 20px; margin-bottom: 25px; border-radius: 0 4px 4px 0;
+    }
+    .quote-box {
+      font-style: italic; color: #555; margin-top: 15px; padding: 15px;
+      background-color: #fff; border-radius: 4px; display: none; font-size: 14px;
+    }
+    
+    /* 警告彈窗 (Modal) */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); display: none; justify-content: center;
+      align-items: center; z-index: 1000;
+    }
+    .modal-content {
+      background: #fff; padding: 30px; border-radius: 4px; max-width: 400px;
+      text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-top: 6px solid #b91c1c;
+    }
+    .modal-content h3 { color: #b91c1c; margin-top: 0; letter-spacing: 1px;}
+    .modal-content p { color: #555; line-height: 1.6; font-size: 15px;}
+    .btn-danger { background-color: #b91c1c; color: white; margin-top: 20px; width: 100%;}
+    .btn-danger:hover { background-color: #991b1b; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>通識：社會思潮 出缺席查詢</h2>
+  
+  <div id="search-view">
+    <div class="input-group">
+      <input type="text" id="keyword" placeholder="請輸入學號、信箱（助教請輸入信箱）..." autocomplete="off">
+      <button id="btn-get-otp" class="btn-secondary" onclick="requestOtp()">發送驗證碼</button>
+    </div>
+    <div id="otp-section" class="input-group" style="display: none;">
+      <input type="text" id="otp-code" placeholder="請輸入信箱收到的 6 位數驗證碼..." autocomplete="off" maxlength="6">
+      <button id="btn-verify" class="btn-primary" onclick="verifyAndSearch()">驗證並登入</button>
+    </div>
+    <div id="msg-area" class="message"></div>
+  </div>
+
+  <div id="result-view" style="display: none;">
+    <div id="dynamic-content"></div> <button id="exit-btn" class="btn-exit" onclick="exitToSearch()">安全登出 (60s)</button>
+  </div>
+</div>
+
+<div id="warning-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>⚠️ 社會資本流失危機</h3>
+    <p>您的曠課次數已達臨界點。在社會學的觀點中，持續脫離群體活動將導致社會網絡的邊緣化與連結斷裂。</p>
+    <p>請正視您的出席狀況，並盡速重新建立與課堂的連結！</p>
+    <button class="btn-danger" onclick="closeWarning()">我了解了，我會改進</button>
+  </div>
+</div>
+
+<script>
+  var otpCooldownTimer = null;
+  var exitCountdownTimer = null;
+  
+  // 社會學家名言庫
+  var quotes = [
+    "「社會的進步，源於個人對現狀的不安與反思。」— 涂爾幹 (Émile Durkheim)",
+    "「哲學家們只是用不同的方式解釋世界，而問題在於改變世界。」— 馬克思 (Karl Marx)",
+    "「人類被編織在由他們自己所編織的意義之網中。」— 韋伯 (Max Weber)",
+    "「知識就是權力，而積極參與是獲取知識的唯一途徑。」— 傅柯 (Michel Foucault)"
+  ];
+
+  function requestOtp() {
+    var keyword = document.getElementById('keyword').value.trim();
+    var btnGetOtp = document.getElementById('btn-get-otp');
+    if (!keyword) { showMessage("請先輸入學號或信箱！", "error"); return; }
+
+    document.getElementById('keyword').disabled = true;
+    btnGetOtp.disabled = true;
+    showMessage("正在寄送驗證碼，請稍候...", "loading");
+
+    google.script.run.withSuccessHandler(function(response) {
+      if (response.success) {
+        showMessage("驗證碼已寄送至 " + response.email + "，請於 3 分鐘內輸入。", "success");
+        document.getElementById('otp-section').style.display = 'flex';
+        document.getElementById('otp-code').focus();
+        startOtpCooldown();
+      } else {
+        document.getElementById('keyword').disabled = false;
+        btnGetOtp.disabled = false;
+        showMessage(response.message, "error");
+      }
+    }).sendOtp(keyword);
+  }
+
+  function startOtpCooldown() {
+    var btnGetOtp = document.getElementById('btn-get-otp');
+    var secondsLeft = 60;
+    clearInterval(otpCooldownTimer);
+    btnGetOtp.innerText = secondsLeft + 's 後重發';
+    otpCooldownTimer = setInterval(function() {
+      secondsLeft--;
+      btnGetOtp.innerText = secondsLeft + 's 後重發';
+      if (secondsLeft <= 0) {
+        clearInterval(otpCooldownTimer);
+        btnGetOtp.innerText = '重新發送驗證碼';
+        btnGetOtp.disabled = false;
+        document.getElementById('keyword').disabled = false;
+      }
+    }, 1000);
+  }
+
+  function verifyAndSearch() {
+    var keyword = document.getElementById('keyword').value.trim();
+    var otpCode = document.getElementById('otp-code').value.trim();
+    var btnVerify = document.getElementById('btn-verify');
+    if (!otpCode) { showMessage("請輸入驗證碼", "error"); return; }
+
+    btnVerify.disabled = true;
+    showMessage("驗證中，請稍候...", "loading");
+
+    google.script.run.withSuccessHandler(function(response) {
+      btnVerify.disabled = false;
+      if (response.success) {
+        document.getElementById('search-view').style.display = 'none';
+        document.getElementById('result-view').style.display = 'block';
+        
+        if(response.isTA) {
+          renderTAView(response.data);
+        } else {
+          renderStudentView(response.data);
+        }
+        startExitTimer();
+      } else {
+        showMessage(response.message, "error");
+      }
+    }).verifyOtpAndSearch(keyword, otpCode);
+  }
+
+  // ==== 渲染學生視角 ====
+  function renderStudentView(data) {
+    if (data.length === 0) {
+      document.getElementById('dynamic-content').innerHTML = "<p>無出席紀錄。</p>";
+      return;
+    }
+
+    var totalAbsent = 0;
+    var tableHtml = '<table><tr><th>課程代碼</th><th>出席次數</th><th>曠課次數</th><th>請假次數</th></tr>';
+    
+    data.forEach(function(row) {
+      totalAbsent += parseInt(row.absent) || 0;
+      var absentClass = row.absent > 0 ? 'class="danger"' : '';
+      var leaveClass = row.leave > 0 ? 'class="warning"' : '';
+      tableHtml += '<tr><td>' + row.course + '</td><td>' + row.present + '</td><td ' + absentClass + '>' + row.absent + '</td><td ' + leaveClass + '>' + row.leave + '</td></tr>';
+    });
+    tableHtml += '</table>';
+
+    var firstRow = data[0];
+    var html = '<div class="info-header">';
+    html += '<span>姓名：<strong>' + firstRow.name + '</strong></span>';
+    html += '<span>學號：<strong>' + firstRow.id + '</strong></span>';
+    html += '</div>';
+
+    // 判斷互動邏輯
+    if (totalAbsent >= 5) {
+      document.getElementById('warning-modal').style.display = 'flex';
+      html += '<div class="theme-box" style="border-left-color: #b91c1c; background-color: #faebeb;">';
+      html += '<strong style="color:#b91c1c;">⚠️ 系統提示：</strong> 你的曠課次數較多，請留意自身的學習狀況。';
+      html += '</div>';
+    } else {
+      html += '<div class="theme-box">';
+      html += '<strong>🌟 思潮引領者</strong><br>你的出席紀錄良好，持續保持，成為推動社會進步的穩定力量！<br>';
+      html += '<button class="btn-primary" style="margin-top:10px; padding: 8px 16px; font-size:13px;" onclick="showQuote()">獲取今日思潮語錄</button>';
+      html += '<div id="quote-display" class="quote-box"></div>';
+      html += '</div>';
+    }
+
+    html += tableHtml;
+    document.getElementById('dynamic-content').innerHTML = html;
+  }
+
+  // 顯示名言
+  function showQuote() {
+    var box = document.getElementById('quote-display');
+    var randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    box.innerText = randomQuote;
+    box.style.display = 'block';
+  }
+
+  // 關閉警告彈窗
+  function closeWarning() {
+    document.getElementById('warning-modal').style.display = 'none';
+  }
+
+  // ==== 渲染助教視角 ====
+  function renderTAView(data) {
+    // 統計每位學生的總曠課與總請假
+    var studentStats = {};
+    data.forEach(function(row) {
+      if (!studentStats[row.id]) {
+        studentStats[row.id] = { name: row.name, id: row.id, absent: 0, leave: 0 };
+      }
+      studentStats[row.id].absent += (parseInt(row.absent) || 0);
+      studentStats[row.id].leave += (parseInt(row.leave) || 0);
+    });
+
+    var studentsArr = Object.values(studentStats);
+    
+    // 曠課排行前 5 名
+    var topAbsent = [...studentsArr].sort((a, b) => b.absent - a.absent).slice(0, 5);
+
+    var html = '<div class="info-header"><span><strong>🧑‍🏫 助教管理控制台</strong></span><span>已載入全體學生資料</span></div>';
+
+    // 儀表板區塊
+    html += '<div class="dashboard-cards">';
+    html += '<div class="card"><div class="card-title">🚨 社會邊緣化風險警示 (曠課前5名)</div><ul class="card-list">';
+    topAbsent.forEach(function(s) {
+      if(s.absent > 0) {
+        html += '<li><span>' + s.name + ' (' + s.id + ')</span><span class="danger">' + s.absent + ' 次</span></li>';
+      }
+    });
+    if(topAbsent[0].absent === 0) html += '<li>目前無人曠課，班級凝聚力極佳！</li>';
+    html += '</ul></div>';
+    html += '</div>';
+
+    // 全體名單表格
+    html += '<h3>全體學生出缺席明細</h3>';
+    html += '<table><tr><th>學號</th><th>姓名</th><th>課程代碼</th><th>出席</th><th>曠課</th><th>請假</th></tr>';
+    data.forEach(function(row) {
+      var absentClass = row.absent > 0 ? 'class="danger"' : '';
+      html += '<tr><td>' + row.id + '</td><td>' + row.name + '</td><td>' + row.course + '</td>';
+      html += '<td>' + row.present + '</td><td ' + absentClass + '>' + row.absent + '</td><td>' + row.leave + '</td></tr>';
+    });
+    html += '</table>';
+
+    document.getElementById('dynamic-content').innerHTML = html;
+  }
+
+  function startExitTimer() {
+    clearInterval(exitCountdownTimer);
+    var secondsLeft = 60;
+    var exitBtn = document.getElementById('exit-btn');
+    exitBtn.innerText = '安全登出 (' + secondsLeft + 's)';
+
+    exitCountdownTimer = setInterval(function() {
+      secondsLeft--;
+      exitBtn.innerText = '安全登出 (' + secondsLeft + 's)';
+      if (secondsLeft <= 0) { exitToSearch(); }
+    }, 1000);
+  }
+
+  function showMessage(text, type) {
+    var msgArea = document.getElementById('msg-area');
+    msgArea.innerText = text;
+    msgArea.className = 'message text-' + type;
+  }
+
+  function exitToSearch() {
+    clearInterval(exitCountdownTimer);
+    clearInterval(otpCooldownTimer);
+    
+    document.getElementById('keyword').value = '';
+    document.getElementById('keyword').disabled = false;
+    document.getElementById('otp-code').value = '';
+    document.getElementById('btn-get-otp').disabled = false;
+    document.getElementById('btn-get-otp').innerText = '發送驗證碼';
+    document.getElementById('otp-section').style.display = 'none';
+    
+    document.getElementById('msg-area').innerText = '';
+    document.getElementById('dynamic-content').innerHTML = '';
+    document.getElementById('warning-modal').style.display = 'none';
+    
+    document.getElementById('result-view').style.display = 'none';
+    document.getElementById('search-view').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
