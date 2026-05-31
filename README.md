@@ -52,6 +52,7 @@ graph TD
     Success --> Load_UI{依身分載入介面}
     Load_UI -->|助教| UI_TA[助教管理儀表板]
     Load_UI -->|學生| UI_Stu[學生專屬視角與關懷彈窗]
+```
 
 🚀 部署指南 (Deployment)
 如果你想要在自己的 Google 帳號中部署此系統，請依照以下步驟：
