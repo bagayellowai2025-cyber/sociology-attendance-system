@@ -1,74 +1,75 @@
-# 🎓 社會思潮課程 - 出缺席查詢系統 (Attendance Management System)
+# 🎓 Course Attendance Management System (Serverless Web App)
 
-這是一個基於 **Google Apps Script (GAS)** 與 **Google 試算表** 打造的輕量化、無伺服器 (Serverless) 出缺席查詢 Web App。
-本專案採用 Bottom-up 開發策略，結合 AI (LLM) 輔助，從底層資料結構建立到前端 UI 渲染，實現了具備權限分流、OTP 驗證與自動防呆的安全查詢系統。
+A lightweight, serverless web application built with **Google Apps Script (GAS)** and **Google Sheets**. 
+Developed with a bottom-up approach and AI (LLM) assistance, this project transforms raw spreadsheet data into a secure, fully functional web app featuring Role-Based Access Control (RBAC), OTP passwordless authentication, and automated error-proofing mechanisms.
 
-## 💡 專案背景與解決痛點
-傳統的課程出缺席查詢常依賴助教人工核對，或使用公開表單，容易造成**行政負擔**與**個資外洩風險**。
-本系統旨在零開發/伺服器成本的前提下，利用 Google 生態系打造一個高安全性、低摩擦力（無須註記密碼）的專屬查詢入口。
-
----
-
-## 🌟 核心功能 (Key Features)
-
-- **🔐 無密碼驗證 (Passwordless Login)：** 透過信箱發送 6 位數一次性密碼 (OTP)，免除使用者記憶密碼的負擔。
-- **👥 角色權限分流 (Role-Based Access Control)：**
-  - **🧑‍🏫 助教視角：** 顯示全體學生名單，並自動抓取「曠課前 5 名」建立高風險儀表板，賦能班級管理。
-  - **👨‍🎓 學生視角：** 僅能查閱個人出缺席紀錄，並結合「社會學」課程主題，依據出席狀況觸發名言鼓勵或風險警告。
-- **⏳ 安全登出機制 (Auto-Logout)：** 考量公用電腦使用情境，設定 60 秒閒置自動登出並清除畫面，防止個資遭窺視。
-- **🛡️ 錯誤次數限制 (Rate Limiting)：** OTP 連續輸入錯誤達 5 次即強制失效，防止惡意腳本暴力破解。
+## 💡 Background & Problem Statement
+Traditional attendance tracking often relies on manual verification by Teaching Assistants (TAs) or public spreadsheets, which creates **administrative bottlenecks** and **data privacy risks**.
+This system is designed to provide a high-security, low-friction inquiry portal with **zero server and development costs**, leveraging the Google ecosystem.
 
 ---
 
-## 🛠️ 技術堆疊 (Tech Stack)
+## 🌟 Key Features
 
-- **Database:** Google 試算表 (搭配 `Query` 函式進行資料聚合與自動化品質測試)
-- **Backend:** Google Apps Script (GAS)
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Caching:** Google Apps Script `CacheService` (處理 OTP 暫存，設定 180 秒生命週期)
+- **🔐 Passwordless Authentication (OTP):** Generates and sends a 6-digit One-Time Password to the user's registered email, eliminating the need for password management.
+- **👥 Role-Based Access Control (RBAC):**
+  - **🧑‍🏫 TA Dashboard:** Displays the full class roster and automatically highlights a "Top 5 Absent Students" high-risk list, empowering proactive classroom management.
+  - **👨‍🎓 Student View:** Restricts access to personal attendance records only. Features context-aware UI interventions (e.g., sociological quotes for good attendance, or warning modals for high absences).
+- **⏳ Auto-Logout Mechanism:** Implements a 60-second idle timeout that safely logs the user out and clears the screen, preventing data leaks on public/shared computers.
+- **🛡️ Rate Limiting & Security:** The system restricts invalid OTP inputs. After 5 consecutive failed attempts, the OTP is forcibly invalidated to prevent brute-force attacks.
 
 ---
 
-## 📊 系統架構 (System Architecture)
+## 🛠️ Tech Stack
 
-本系統將「原始點名紀錄」與「統計資料」解耦，前端僅與驗證邏輯及快取層互動。以下為 OTP 驗證與登入流程圖：
+- **Database:** Google Sheets (utilizing the `QUERY` function for data aggregation and automated data validation tests).
+- **Backend:** Google Apps Script (GAS).
+- **Frontend:** HTML5, CSS3, Vanilla JavaScript.
+- **Caching:** Google Apps Script `CacheService` (handles temporary OTP storage with a strict 180-second lifespan).
+
+---
+
+## 📊 System Architecture
+
+The system decouples "Raw Attendance Logs" from "Aggregated Stats". The frontend only interacts with the authentication logic and cache layer. Below is the OTP authentication and login flow:
 
 ```mermaid
 graph TD
-    Start([使用者輸入學號/信箱]) --> CheckRole{系統判別身分}
-    CheckRole -->|助教白名單| Gen_OTP[生成 6 位數 OTP]
-    CheckRole -->|非白名單| Stu_Auth{搜尋學生資料表}
-    Stu_Auth -->|比對成功| Gen_OTP
+    Start([User Inputs ID/Email]) --> CheckRole{Identity Check}
+    CheckRole -->|TA Whitelist| Gen_OTP[Generate 6-digit OTP]
+    CheckRole -->|Not Whitelisted| Stu_Auth{Search Student DB}
+    Stu_Auth -->|Match Found| Gen_OTP
     
-    Gen_OTP --> Cache[(存入 CacheService 限時 180 秒)]
-    Cache --> Send_Mail[發送驗證信件]
-    Send_Mail --> Input_OTP([使用者輸入 OTP])
+    Gen_OTP --> Cache[(Store in CacheService <br> Expires in 180s)]
+    Cache --> Send_Mail[Send OTP Email]
+    Send_Mail --> Input_OTP([User Inputs OTP])
     
-    Input_OTP --> Verify_OTP{驗證 OTP}
-    Verify_OTP -->|錯誤 < 5次| Fail_Add[錯誤次數 +1]
-    Verify_OTP -->|錯誤 >= 5次| Lockout[鎖定機制：強制銷毀 OTP]
+    Input_OTP --> Verify_OTP{Verify OTP}
+    Verify_OTP -->|Invalid < 5| Fail_Add[Failed Attempts +1]
+    Verify_OTP -->|Invalid >= 5| Lockout[Lockout: Destroy OTP]
     
-    Verify_OTP -->|正確| Success[驗證成功，清除 Cache]
-    Success --> Load_UI{依身分載入介面}
-    Load_UI -->|助教| UI_TA[助教管理儀表板]
-    Load_UI -->|學生| UI_Stu[學生專屬視角與關懷彈窗]
+    Verify_OTP -->|Valid| Success[Success: Clear Cache]
+    Success --> Load_UI{Render UI by Role}
+    Load_UI -->|TA| UI_TA[TA Management Dashboard]
+    Load_UI -->|Student| UI_Stu[Student View & Interventions]
 ```
 
-🚀 部署指南 (Deployment)
-如果你想要在自己的 Google 帳號中部署此系統，請依照以下步驟：
+🚀 Deployment Guide
+To deploy this system in your own Google Workspace environment, follow these steps:
 
-1.建立資料庫： - 建立一個 Google 試算表，並新增兩個工作表：「原始資料」與「統計資料」。
-依照欄位設計輸入資料。
+1.Database Setup: - Create a Google Sheet with two tabs: Raw Data (原始資料) and Stats (統計資料).
+- Populate the sheet matching the required column structures.
 
-2.匯入程式碼： - 在試算表選單點擊 擴充功能 -> Apps Script。
-將本專案的 Code.gs 與 Index.html 貼入對應的檔案中。
+2.Import Code: - Open your Google Sheet, navigate to Extensions -> Apps Script.
+- Copy and paste the provided Code.gs and Index.html into the respective files.
 
-3.環境變數設定：
-在 Code.gs 中，將 TA_EMAILS 陣列替換為你實際的助教信箱。
+3.Environment Variables:
+- In Code.gs, update the TA_EMAILS array with your actual Teaching Assistant email addresses.
 
-4.發佈 Web App：
-- 點擊右上角 部署 -> 新增部署作業。
-- 類型選擇 網頁應用程式。
-- 執行身分選擇 我 (你的帳號)。
-- 誰可以存取選擇 所有人。
-- 點擊部署並授權相關權限，即可獲得專屬的 Web App 網址！
+4.Deploy as Web App:
+- Click Deploy -> New deployment in the top right corner.
+- Select Web app as the type.
+- Execute as: Me.
+- Who has access: Anyone.
+- Click deploy, authorize the necessary permissions, and you will receive your live Web App URL!
+
