@@ -7,6 +7,8 @@ Developed with a bottom-up approach and AI (LLM) assistance, this project transf
 Traditional attendance tracking often relies on manual verification by Teaching Assistants (TAs) or public spreadsheets, which creates **administrative bottlenecks** and **data privacy risks**.
 This system is designed to provide a high-security, low-friction inquiry portal with **zero server and development costs**, leveraging the Google ecosystem.
 
+[![Video Demo](https://img.youtube.com/vi/UjFet9X_qqY/maxresdefault.jpg)](https://youtu.be/UjFet9X_qqY)
+
 ---
 
 ## 🌟 Key Features
